@@ -1,6 +1,7 @@
 import React , {Component}from 'react'
-import {View,FlatList,Image,ImageBackground,Text, Dimensions, StyleSheet ,Button} from 'react-native'
+import {View,FlatList,Image,ImageBackground,Text, Dimensions, StyleSheet, TouchableOpacity} from 'react-native'
 import LinearGradient from 'react-native-linear-gradient';
+import Button from 'react-native-button'
 
 const WINDOW_WIDTH = Dimensions.get('window').width
 const VIDEO_ASPECT_RATIO = 16 / 9;
@@ -54,20 +55,28 @@ class VideoList extends Component {
 
     renderItem(item) {
        return(
-           <View >
-               <ImageBackground source={{uri:item.item.cover}} style={{width:WINDOW_WIDTH,height:WINDOW_WIDTH / VIDEO_ASPECT_RATIO,backgroundColor:'blue'}}>
-                    <LinearGradient colors={['black','transparent']}
-                    >
-                        <Text style={styles.videoTitle}>{item.item.title}</Text>
-                    </LinearGradient>
+           <View>
+               <ImageBackground source={{uri:item.item.cover}} style={[{width:WINDOW_WIDTH,height:WINDOW_WIDTH / VIDEO_ASPECT_RATIO,backgroundColor:'blue'},styles.center]}>
+                   <Image source={require('../image/Play.png')}/>
                </ImageBackground>
-
+               <LinearGradient colors={['black','transparent']} style={{top:0,width:WINDOW_WIDTH,position:'absolute'}}>
+                   <Text style={styles.videoTitle}>{item.item.title}</Text>
+               </LinearGradient>
                <View style={styles.row}>
                    <Text style={styles.tname}>{item.item.videoTopic.tname}</Text>
                    <View style={[styles.row,{flex:1, justifyContent:'flex-end'}]}>
-                       <Button title="关注" style={{left:0,position:'absolute'}}/>
-                       <Button title={`评论:${item.item.replyCount}`} style={{marginRight:30}} />
-                       <Button title="..." style={{marginRight:30}}/>
+                       <TouchableOpacity style={[styles.button,{flexDirection:'row',alignItems:'center'}]}>
+                           <Image source={require('../image/video_add.png')}/>
+                           <Text style={{justifyContent:'center'}}>关注</Text>
+                       </TouchableOpacity>
+                       <TouchableOpacity style={[styles.button,{flexDirection:'row',alignItems:'center'}]}>
+                           <Image source={require('../image/tab_comment.png')}/>
+                           <Text>{item.item.replyCount}</Text>
+                       </TouchableOpacity>
+
+                       <TouchableOpacity style={styles.button}>
+                           <Image source={require('../image/More.png')}/>
+                       </TouchableOpacity>
                    </View>
                </View>
                <Image source={{uri:item.item.cover}} style={styles.avatar}/>
@@ -114,6 +123,15 @@ const styles = StyleSheet.create({
         height:40,
         alignItems:'center',
         flexDirection:'row'
+    },
+    button:{
+        fontSize:12,
+        color:'black',
+        marginRight:20
+    },
+    center:{
+        justifyContent:'center',
+        alignItems:'center'
     }
 })
 export default VideoList
