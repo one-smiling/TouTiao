@@ -1,6 +1,9 @@
 import React , {Component}from 'react'
-import {View,FlatList,Image,ImageBackground,Text, Dimensions, StyleSheet, TouchableOpacity} from 'react-native'
-import LinearGradient from 'react-native-linear-gradient';
+import {View,FlatList,Image,ImageBackground,Text, Dimensions, StyleSheet, TouchableOpacity,  AlertIOS,} from 'react-native'
+import LinearGradient from 'react-native-linear-gradient'
+import Video from 'react-native-video'
+import * as Progress from 'react-native-progress';
+
 import Button from 'react-native-button'
 
 const WINDOW_WIDTH = Dimensions.get('window').width
@@ -28,9 +31,12 @@ const queryParams = {'channel': 'T1457068979049',
 class VideoList extends Component {
     constructor(props) {
         super(props)
-        this.state = {
-            data:null
-        }
+        this._renderLoadingIfNeeded = this._renderLoadingIfNeeded.bind(this)
+
+    }
+    state = {
+        data:null,
+        playIndex:-1
     }
 
     componentDidMount() {
@@ -42,7 +48,6 @@ class VideoList extends Component {
         for (var key in queryParams) {
             queryString = queryString.concat(key,'=',encodeURI(queryParams[key]),'&')
         }
-
         fetch(fetchUrl.concat('?',queryString))
             .then(response=>response.json())
             .catch((error)=>{
@@ -54,11 +59,25 @@ class VideoList extends Component {
     }
 
     renderItem(item) {
-       return(
+        let needToPlay = this.state.playIndex === item.index ? true : false
+        if (needToPlay) {
+            console.log('开始播放：'+item.index)
+        }
+
+        return(
            <View>
-               <ImageBackground source={{uri:item.item.cover}} style={[{width:WINDOW_WIDTH,height:WINDOW_WIDTH / VIDEO_ASPECT_RATIO,backgroundColor:'blue'},styles.center]}>
-                   <Image source={require('../image/Play.png')}/>
-               </ImageBackground>
+               <TouchableOpacity onPress={()=>{this.setState({playIndex:needToPlay ? -1 : item.index })}}>
+                   <Video source={{uri:item.item.mp4_url}}
+                        ref={ref=>{this.video = ref}}
+                        rate={1.0}
+                        paused={!needToPlay}
+                        poster={item.item.cover}
+                        style={styles.backgroundVideo}/>
+                   {this._renderLoadingIfNeeded(item.index)}
+               </TouchableOpacity>
+               {/*<ImageBackground source={{uri:item.item.cover}} style={[{width:WINDOW_WIDTH,height:WINDOW_WIDTH / VIDEO_ASPECT_RATIO,backgroundColor:'blue'},styles.center]}>*/}
+                   {/*<Image source={require('../image/Play.png')}/>*/}
+               {/*</ImageBackground>*/}
                <LinearGradient colors={['black','transparent']} style={{top:0,width:WINDOW_WIDTH,position:'absolute'}}>
                    <Text style={styles.videoTitle}>{item.item.title}</Text>
                </LinearGradient>
@@ -67,11 +86,11 @@ class VideoList extends Component {
                    <View style={[styles.row,{flex:1, justifyContent:'flex-end'}]}>
                        <TouchableOpacity style={[styles.button,{flexDirection:'row',alignItems:'center'}]}>
                            <Image source={require('../image/video_add.png')}/>
-                           <Text style={{justifyContent:'center'}}>关注</Text>
+                           <Text style={[{justifyContent:'center'},styles.buttonTitle]}>关注</Text>
                        </TouchableOpacity>
                        <TouchableOpacity style={[styles.button,{flexDirection:'row',alignItems:'center'}]}>
                            <Image source={require('../image/tab_comment.png')}/>
-                           <Text>{item.item.replyCount}</Text>
+                           <Text style={styles.buttonTitle}>{item.item.replyCount}</Text>
                        </TouchableOpacity>
 
                        <TouchableOpacity style={styles.button}>
@@ -85,12 +104,21 @@ class VideoList extends Component {
 
     }
 
+    _renderLoadingIfNeeded(playingIndex) {
+        if (playingIndex !== this.state.playIndex) return null
+        return (
+            <Progress.Circle size={30} indeterminate={true} />
+        )
+
+    }
+
     render() {
         return(
 
             <View>
                 <FlatList data={this.state.data}
-                    renderItem={this.renderItem.bind(this)}
+                          extraData={this.state}
+                          renderItem={item=>this.renderItem(item)}
                 />
             </View>
 
@@ -125,13 +153,21 @@ const styles = StyleSheet.create({
         flexDirection:'row'
     },
     button:{
+        marginRight:20
+    },
+    buttonTitle:{
         fontSize:12,
         color:'black',
-        marginRight:20
     },
     center:{
         justifyContent:'center',
         alignItems:'center'
-    }
+    },
+    backgroundVideo: {
+        top: 0,
+        left: 0,
+        width:WINDOW_WIDTH,
+        height:VIDEO_HEIGHT
+    },
 })
 export default VideoList
