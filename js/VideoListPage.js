@@ -2,7 +2,7 @@ import React , {Component}from 'react'
 import {View,FlatList,Image,ImageBackground,Text, Dimensions, StyleSheet, TouchableOpacity,  AlertIOS,} from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import Video from 'react-native-video'
-import * as Progress from 'react-native-progress';
+import ProgressCircleSnail from 'react-native-progress/CircleSnail';
 
 import Button from 'react-native-button'
 
@@ -32,10 +32,16 @@ class VideoList extends Component {
     constructor(props) {
         super(props)
         this._renderLoadingIfNeeded = this._renderLoadingIfNeeded.bind(this)
-
+        this.onLoadStart = this.onLoadStart.bind(this)
+        this.onLoad = this.onLoad.bind(this)
+        this.onBuffer = this.onBuffer.bind(this)
+        this.onProgress = this.onProgress.bind(this)
+        this.onPlaybackStalled= this.onPlaybackStalled.bind(this)
+        this.onVideoPressed = this.onVideoPressed.bind(this)
     }
     state = {
         data:null,
+        isLoading:false,
         playIndex:-1
     }
 
@@ -59,28 +65,38 @@ class VideoList extends Component {
     }
 
     renderItem(item) {
-        let needToPlay = this.state.playIndex === item.index ? true : false
+        let needToPlay = this.state.playIndex === item.index
         if (needToPlay) {
-            console.log('开始播放：'+item.index)
+            // console.log('开始播放：'+item.index)
+            // ()=>this.setState({playIndex:needToPlay ? -1 : item.index})
         }
 
         return(
            <View>
-               <TouchableOpacity onPress={()=>{this.setState({playIndex:needToPlay ? -1 : item.index })}}>
+
+               <TouchableOpacity onPress={()=>{this.onVideoPressed(item)}} style={{alignItems: 'center'}}>
                    <Video source={{uri:item.item.mp4_url}}
                         ref={ref=>{this.video = ref}}
                         rate={1.0}
                         paused={!needToPlay}
                         poster={item.item.cover}
-                        style={styles.backgroundVideo}/>
+                          onProgress={this.onProgress}
+                          onLoad={this.onLoad}
+                          onBuffer={this.onBuffer}
+                          onPlaybackStalled={this.onPlaybackStalled}
+                          onLoadStart={this.onLoadStart}
+                        style={styles.backgroundVideo}>
+                   </Video>
                    {this._renderLoadingIfNeeded(item.index)}
                </TouchableOpacity>
-               {/*<ImageBackground source={{uri:item.item.cover}} style={[{width:WINDOW_WIDTH,height:WINDOW_WIDTH / VIDEO_ASPECT_RATIO,backgroundColor:'blue'},styles.center]}>*/}
-                   {/*<Image source={require('../image/Play.png')}/>*/}
-               {/*</ImageBackground>*/}
-               <LinearGradient colors={['black','transparent']} style={{top:0,width:WINDOW_WIDTH,position:'absolute'}}>
-                   <Text style={styles.videoTitle}>{item.item.title}</Text>
-               </LinearGradient>
+               <View>
+                   <LinearGradient colors={['black','transparent']} style={{top:0,width:WINDOW_WIDTH,position:'absolute'}}>
+                       <Text style={styles.videoTitle}>{item.item.title}</Text>
+                   </LinearGradient>
+               </View>
+
+
+
                <View style={styles.row}>
                    <Text style={styles.tname}>{item.item.videoTopic.tname}</Text>
                    <View style={[styles.row,{flex:1, justifyContent:'flex-end'}]}>
@@ -104,10 +120,46 @@ class VideoList extends Component {
 
     }
 
+    componentDidUpdate() {
+
+    }
+
+
+    onVideoPressed(item) {
+        let isPlaying = this.state.playIndex === item.index
+        this.setState({playIndex:isPlaying ? -1 : item.index })
+    }
+
+    onPlaybackStalled() {
+        console.log('onPlaybackStalled')
+        this.setState({isLoading:true})
+    }
+
+    onProgress() {
+        console.log('onProgress')
+        if (this.state.isLoading === true) {
+            this.setState({isLoading:false})
+        }
+
+    }
+    onLoad() {
+        console.log('onLoad')
+        this.setState({isLoading:false})
+    }
+    onBuffer({ isBuffering }: { isBuffering: boolean }) {
+        console.log('onBuffer'+isBuffering)
+    }
+    onLoadStart() {
+        console.log('onLoadStart')
+        this.setState({isLoading:true})
+    }
     _renderLoadingIfNeeded(playingIndex) {
-        if (playingIndex !== this.state.playIndex) return null
+        // return null
+        if (playingIndex !== this.state.playIndex || this.state.isLoading !== true) return null
         return (
-            <Progress.Circle size={30} indeterminate={true} />
+            <View style={{top:(VIDEO_HEIGHT-40)/2,position:'absolute'}}>
+                <ProgressCircleSnail indeterminate={true} color={['red']} />
+            </View>
         )
 
     }
