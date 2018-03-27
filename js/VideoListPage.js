@@ -1,5 +1,5 @@
 import React , {Component}from 'react'
-import {View,FlatList,Image,ImageBackground,Text, Dimensions, StyleSheet, TouchableOpacity,  AlertIOS,} from 'react-native'
+import {View,FlatList,Image,ImageBackground,Text, Dimensions, StyleSheet, TouchableOpacity,  AlertIOS, Slider} from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import Video from 'react-native-video'
 import ProgressCircleSnail from 'react-native-progress/CircleSnail';
@@ -38,11 +38,16 @@ class VideoList extends Component {
         this.onProgress = this.onProgress.bind(this)
         this.onPlaybackStalled= this.onPlaybackStalled.bind(this)
         this.onVideoPressed = this.onVideoPressed.bind(this)
+        this.isSliderDraged = false
     }
     state = {
         data:null,
         isLoading:false,
-        playIndex:-1
+        playIndex:-1,
+        playIndexPaused:false,
+        videoDuration:0,
+        currentTime:0,
+
     }
 
     componentDidMount() {
@@ -65,37 +70,37 @@ class VideoList extends Component {
     }
 
     renderItem(item) {
-        let needToPlay = this.state.playIndex === item.index
+        let isPlayIndex = this.state.playIndex === item.index
+        let needToPlay = isPlayIndex && !this.state.paused
         if (needToPlay) {
-            // console.log('开始播放：'+item.index)
+            console.log('开始播放：'+item.index)
             // ()=>this.setState({playIndex:needToPlay ? -1 : item.index})
         }
 
         return(
            <View>
-
                <TouchableOpacity onPress={()=>{this.onVideoPressed(item)}} style={{alignItems: 'center'}}>
+                   {isPlayIndex  ?
                    <Video source={{uri:item.item.mp4_url}}
                         ref={ref=>{this.video = ref}}
                         rate={1.0}
                         paused={!needToPlay}
-                        poster={item.item.cover}
                           onProgress={this.onProgress}
                           onLoad={this.onLoad}
                           onBuffer={this.onBuffer}
                           onPlaybackStalled={this.onPlaybackStalled}
                           onLoadStart={this.onLoadStart}
                         style={styles.backgroundVideo}>
-                   </Video>
+                   </Video> : <Image source={{uri:item.item.cover}} style={styles.backgroundVideo}/>}
+
                    {this._renderLoadingIfNeeded(item.index)}
+                   {isPlayIndex ? this._renderVideoControls() : null}
                </TouchableOpacity>
                <View>
                    <LinearGradient colors={['black','transparent']} style={{top:0,width:WINDOW_WIDTH,position:'absolute'}}>
                        <Text style={styles.videoTitle}>{item.item.title}</Text>
                    </LinearGradient>
                </View>
-
-
 
                <View style={styles.row}>
                    <Text style={styles.tname}>{item.item.videoTopic.tname}</Text>
@@ -114,7 +119,7 @@ class VideoList extends Component {
                        </TouchableOpacity>
                    </View>
                </View>
-               <Image source={{uri:item.item.cover}} style={styles.avatar}/>
+               {isPlayIndex ? null : <Image source={{uri:item.item.cover}} style={styles.avatar}/>}
            </View>
        )
 
@@ -124,10 +129,23 @@ class VideoList extends Component {
 
     }
 
-
     onVideoPressed(item) {
-        let isPlaying = this.state.playIndex === item.index
-        this.setState({playIndex:isPlaying ? -1 : item.index })
+        let isPlaying = this.state.playIndex === item.index && !this.state.paused
+        let state = this.state
+        if (this.state.playIndex !== item.index) {
+
+            if (item.index === 2) {
+                console.log('播放异常')
+            }
+
+            state.playIndex = item.index
+            state.videoDuration = 0
+            state.currentTime = 0
+
+        }
+        state.paused = isPlaying
+        this.setState(state)
+
     }
 
     onPlaybackStalled() {
@@ -135,16 +153,22 @@ class VideoList extends Component {
         this.setState({isLoading:true})
     }
 
-    onProgress() {
-        console.log('onProgress')
+    onProgress(data) {
+        console.log('onProgress' + data.currentTime)
+        let state = this.state
         if (this.state.isLoading === true) {
-            this.setState({isLoading:false})
+            state.isLoading = false
+            this.setState(state)
+        }
+        if (!this.isSliderDraged) {
+            state.currentTime = data.currentTime
+            this.setState(state)
         }
 
     }
-    onLoad() {
+    onLoad(data) {
         console.log('onLoad')
-        this.setState({isLoading:false})
+        this.setState({isLoading:false,videoDuration:parseInt(data.duration)})
     }
     onBuffer({ isBuffering }: { isBuffering: boolean }) {
         console.log('onBuffer'+isBuffering)
@@ -152,6 +176,10 @@ class VideoList extends Component {
     onLoadStart() {
         console.log('onLoadStart')
         this.setState({isLoading:true})
+    }
+    onSliderValueChanged(value){
+        this.isSliderDraged = true
+        this.setState({currentTime:value})
     }
     _renderLoadingIfNeeded(playingIndex) {
         // return null
@@ -161,8 +189,32 @@ class VideoList extends Component {
                 <ProgressCircleSnail indeterminate={true} color={['red']} />
             </View>
         )
-
     }
+
+    _renderVideoControls() {
+        let sliderProps = this.isSliderDraged ?  null : {value:this.state.currentTime}
+        return (
+            <View style={{left:0,top:0,width:WINDOW_WIDTH,height:VIDEO_HEIGHT,position:'absolute',justifyContent:'flex-end'}}>
+                <View style={{flexDirection:'row',alignItems:'center',height:50,backgroundColor:"rgb(210, 230,255,1)" ,activeOpacity:0.5}}>
+                    <Text ref={(ref)=>this.currentTimeText = ref} style={[styles.videoControlItem,{width:40}]}>{parseInt(this.state.currentTime)}</Text>
+                        <Slider {...sliderProps}
+                                minimumValue={0}
+                                maximumValue={this.state.videoDuration}
+                                onSlidingComplete={(value)=>{
+                                    this.isSliderDraged = false
+                                    this.video.seek(parseInt(value))}
+                                }
+                                onValueChange={(value)=>this.onSliderValueChanged(value)}
+                                style={{flex:1}}></Slider>
+                        <Text style={styles.videoControlItem}>{this.state.videoDuration}</Text>
+                    <TouchableOpacity style={styles.videoControlItem}>
+                        <Image source={require('./img/fullscreen.png')}/>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        )
+    }
+
 
     render() {
         return(
@@ -221,5 +273,8 @@ const styles = StyleSheet.create({
         width:WINDOW_WIDTH,
         height:VIDEO_HEIGHT
     },
+    videoControlItem:{
+        marginHorizontal:10
+    }
 })
 export default VideoList
