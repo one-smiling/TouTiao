@@ -1,5 +1,5 @@
 import React , {Component}from 'react'
-import {View,FlatList,Image,ImageBackground,Text, Dimensions, StyleSheet, TouchableOpacity,  AlertIOS, Slider} from 'react-native'
+import {View,FlatList,Image,ImageBackground,Text, Dimensions, StyleSheet, TouchableWithoutFeedback,TouchableOpacity,AlertIOS, Slider} from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import Video from 'react-native-video'
 import ProgressCircleSnail from 'react-native-progress/CircleSnail';
@@ -39,6 +39,7 @@ class VideoList extends Component {
         this.onPlaybackStalled= this.onPlaybackStalled.bind(this)
         this.onVideoPressed = this.onVideoPressed.bind(this)
         this.isSliderDraged = false
+        this.hiddenTimer = null
     }
     state = {
         data:null,
@@ -47,7 +48,7 @@ class VideoList extends Component {
         playIndexPaused:false,
         videoDuration:0,
         currentTime:0,
-
+        videoControlsShow:false
     }
 
     componentDidMount() {
@@ -73,13 +74,13 @@ class VideoList extends Component {
         let isPlayIndex = this.state.playIndex === item.index
         let needToPlay = isPlayIndex && !this.state.paused
         if (needToPlay) {
-            console.log('开始播放：'+item.index)
+            // console.log('开始播放：'+item.index)
             // ()=>this.setState({playIndex:needToPlay ? -1 : item.index})
         }
 
         return(
            <View>
-               <TouchableOpacity onPress={()=>{this.onVideoPressed(item)}} style={{alignItems: 'center'}}>
+               <TouchableWithoutFeedback onPress={()=>{this.onVideoPressed(item)}} style={{alignItems: 'center'}}>
                    {isPlayIndex  ?
                    <Video source={{uri:item.item.mp4_url}}
                         ref={ref=>{this.video = ref}}
@@ -93,9 +94,11 @@ class VideoList extends Component {
                         style={styles.backgroundVideo}>
                    </Video> : <Image source={{uri:item.item.cover}} style={styles.backgroundVideo}/>}
 
-                   {this._renderLoadingIfNeeded(item.index)}
-                   {isPlayIndex ? this._renderVideoControls() : null}
-               </TouchableOpacity>
+
+               </TouchableWithoutFeedback>
+               {this._renderLoadingIfNeeded(item.index)}
+               {isPlayIndex ? this._rederVideoPlayButton() : null}
+               {isPlayIndex ? this._renderVideoControls() : null}
                <View>
                    <LinearGradient colors={['black','transparent']} style={{top:0,width:WINDOW_WIDTH,position:'absolute'}}>
                        <Text style={styles.videoTitle}>{item.item.title}</Text>
@@ -126,26 +129,36 @@ class VideoList extends Component {
     }
 
     componentDidUpdate() {
-
+        // console.log('componentDidUpdate')
     }
 
     onVideoPressed(item) {
         let isPlaying = this.state.playIndex === item.index && !this.state.paused
         let state = this.state
-        if (this.state.playIndex !== item.index) {
-
-            if (item.index === 2) {
-                console.log('播放异常')
+        if (isPlaying) {
+            state.videoControlsShow = !state.videoControlsShow
+            if (state.videoControlsShow) {
+                clearTimeout(this.hiddenTimer)
+                this.hiddenTimer = setTimeout(()=>{
+                    console.log('timeout')
+                    this.setState({videoControlsShow:!this.state.videoControlsShow})
+                },3000)
             }
 
-            state.playIndex = item.index
-            state.videoDuration = 0
-            state.currentTime = 0
+            this.setState(state)
+        } else {
+            if (this.state.playIndex !== item.index) {
 
+                if (item.index === 2) {
+                    console.log('播放异常')
+                }
+                state.playIndex = item.index
+                state.videoDuration = 0
+                state.currentTime = 0
+            }
+            state.paused = isPlaying
+            this.setState(state)
         }
-        state.paused = isPlaying
-        this.setState(state)
-
     }
 
     onPlaybackStalled() {
@@ -154,7 +167,7 @@ class VideoList extends Component {
     }
 
     onProgress(data) {
-        console.log('onProgress' + data.currentTime)
+        // console.log('onProgress' + data.currentTime)
         let state = this.state
         if (this.state.isLoading === true) {
             state.isLoading = false
@@ -166,6 +179,24 @@ class VideoList extends Component {
         }
 
     }
+
+    getTimeForSecond(time) {
+        let minite = time / 60
+        let second = time % 60
+        return this.pad(parseInt(minite),2) + ':' + this.pad(second,2)
+    }
+
+    /* 质朴长存法 */
+    // http://www.nowamagic.net/javascript/js_AddZeroFrontOfNumber.php
+    pad(num, n) {
+        var len = num.toString().length;
+        while(len < n) {
+            num = "0" + num;
+            len++;
+        }
+        return num;
+    }
+
     onLoad(data) {
         console.log('onLoad')
         this.setState({isLoading:false,videoDuration:parseInt(data.duration)})
@@ -185,18 +216,45 @@ class VideoList extends Component {
         // return null
         if (playingIndex !== this.state.playIndex || this.state.isLoading !== true) return null
         return (
-            <View style={{top:(VIDEO_HEIGHT-40)/2,position:'absolute'}}>
+            <View style={{top:(VIDEO_HEIGHT-40)/2,left:(WINDOW_WIDTH-40)/2,position:'absolute'}}>
                 <ProgressCircleSnail indeterminate={true} color={['red']} />
             </View>
         )
     }
 
+    _rederVideoPlayButton() {
+        // return null
+        if (!this.state.videoControlsShow) return null
+
+        if (!this.state.isLoading) {
+            if (this.state.paused) {
+                return (
+                    <TouchableWithoutFeedback onPress={()=>{this.setState({paused:false})}} >
+                        <Image source={require('../image/FullPlay.png')} style={styles.playBtn}/>
+                    </TouchableWithoutFeedback>
+                )
+            } else  {
+                return (
+                    <TouchableWithoutFeedback onPress={()=>{this.setState({paused:true})}} style={styles.playBtn}>
+                        <Image source={require('../image/FullPause.png')} style={styles.playBtn}/>
+                    </TouchableWithoutFeedback>
+                )
+
+            }
+        }
+    }
+
+
     _renderVideoControls() {
+        if (!this.state.videoControlsShow) return null
+        console.log('_renderVideoControls')
         let sliderProps = this.isSliderDraged ?  null : {value:this.state.currentTime}
+        let currentTime = this.getTimeForSecond(parseInt(this.state.currentTime))
+        let duration = this.getTimeForSecond(this.state.videoDuration)
+
         return (
-            <View style={{left:0,top:0,width:WINDOW_WIDTH,height:VIDEO_HEIGHT,position:'absolute',justifyContent:'flex-end'}}>
-                <View style={{flexDirection:'row',alignItems:'center',height:50,backgroundColor:"rgb(210, 230,255,1)" ,activeOpacity:0.5}}>
-                    <Text ref={(ref)=>this.currentTimeText = ref} style={[styles.videoControlItem,{width:40}]}>{parseInt(this.state.currentTime)}</Text>
+                <View style={styles.videoControls}>
+                    <Text ref={(ref)=>this.currentTimeText = ref} style={[styles.videoControlItem,{width:40}]}>{currentTime}</Text>
                         <Slider {...sliderProps}
                                 minimumValue={0}
                                 maximumValue={this.state.videoDuration}
@@ -206,12 +264,11 @@ class VideoList extends Component {
                                 }
                                 onValueChange={(value)=>this.onSliderValueChanged(value)}
                                 style={{flex:1}}></Slider>
-                        <Text style={styles.videoControlItem}>{this.state.videoDuration}</Text>
+                        <Text style={styles.videoControlItem}>{duration}</Text>
                     <TouchableOpacity style={styles.videoControlItem}>
                         <Image source={require('./img/fullscreen.png')}/>
                     </TouchableOpacity>
                 </View>
-            </View>
         )
     }
 
@@ -272,6 +329,23 @@ const styles = StyleSheet.create({
         left: 0,
         width:WINDOW_WIDTH,
         height:VIDEO_HEIGHT
+    },
+    playBtn:{
+        top:(VIDEO_HEIGHT-40)/2,
+        left:(WINDOW_WIDTH-40)/2,
+        width:40,
+        height:40,
+        position:'absolute'
+    },
+    videoControls:{
+        position:'absolute',
+        top: VIDEO_HEIGHT - 30,
+        width:WINDOW_WIDTH,
+        left:0,
+        flexDirection:'row',
+        alignItems:'center',
+        height:30,
+        backgroundColor:"transparent",
     },
     videoControlItem:{
         marginHorizontal:10
