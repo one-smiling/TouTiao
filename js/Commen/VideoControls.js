@@ -24,6 +24,7 @@ export  default  class VideoControls extends Component {
         this.onPlaybackStalled= this.onPlaybackStalled.bind(this)
         this.onVideoPressed = this.onVideoPressed.bind(this)
         this.isSliderDraged = false
+        this.isFullScreen = false
         this.hiddenTimer = null
 
     }
@@ -32,7 +33,7 @@ export  default  class VideoControls extends Component {
         videoDuration:0,
         currentTime:0,
         videoControlsShow:false,
-        paused:this.props.paused
+        paused:this.props.paused,
     }
 
     onVideoPressed() {
@@ -73,11 +74,10 @@ export  default  class VideoControls extends Component {
             state.isLoading = false
             this.setState(state)
         }
-        if (!this.isSliderDraged) {
+        if (!this.isSliderDraged && this.state.videoControlsShow) {
             state.currentTime = data.currentTime
             this.setState(state)
         }
-
     }
 
     getTimeForSecond(time) {
@@ -115,9 +115,19 @@ export  default  class VideoControls extends Component {
     }
 
     videoFullScreen() {
+        this.isFullScreen = true
         this.video.presentFullscreenPlayer()
-        // this.setState({fullScreen:true})
     }
+
+    onFullscreenPlayerWillDismiss() {
+        this.isFullScreen = false
+    }
+
+    shouldComponentUpdate() {
+        console.log('shouldComponentUpdate' + !this.isFullScreen)
+        return !this.isFullScreen
+    }
+
     _renderLoadingIfNeeded(playingIndex) {
         // return null
         if (playingIndex !== this.state.playIndex || this.state.isLoading !== true) return null
@@ -182,16 +192,18 @@ export  default  class VideoControls extends Component {
             <View>
                 <TouchableWithoutFeedback onPress={()=>{this.onVideoPressed()}} style={{alignItems: 'center'}}>
                         <Video
-                               ref={ref=>{this.video = ref}}
-                               rate={1.0}
-                               {...this.props}
-                               paused={this.state.paused}
-                               onProgress={this.onProgress}
-                               onLoad={this.onLoad}
-                               onBuffer={this.onBuffer}
-                               onPlaybackStalled={this.onPlaybackStalled}
-                               onLoadStart={this.onLoadStart}
-                               style={[styles.backgroundVideo,this.props.style]}>
+                            {...this.props}
+                            ref={ref=>{this.video = ref}}
+                            rate={1.0}
+                            paused={this.state.paused}
+                            onProgress={this.onProgress}
+                            onLoad={this.onLoad}
+                            onBuffer={this.onBuffer}
+                            onPlaybackStalled={this.onPlaybackStalled}
+                            onLoadStart={this.onLoadStart}
+                            onFullscreenPlayerWillDismiss={()=>{this.onFullscreenPlayerWillDismiss()}}
+                            style={[styles.backgroundVideo,this.props.style]}
+                        >
                         </Video>
                 </TouchableWithoutFeedback>
                 {this._renderLoadingIfNeeded()}
@@ -226,9 +238,9 @@ const styles = StyleSheet.create({
     }
 })
 
-VideoControls.PropTypes = {
-    title:PropTypes.text,
+VideoControls.propTypes = {
+    title:PropTypes.string,
     renderTitle:PropTypes.func,
     showTitle:PropTypes.bool,
-    ...Video.PropTypes
+    ...Video.propTypes
 }

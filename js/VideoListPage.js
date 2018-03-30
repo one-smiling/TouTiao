@@ -46,6 +46,7 @@ class VideoList extends Component {
         currentTime:0,
         videoControlsShow:false,
         fullScreen:false,
+        refreshing:true
     }
 
     componentDidMount() {
@@ -53,6 +54,7 @@ class VideoList extends Component {
     }
 
     loadData() {
+        this.setState({refreshing:true})
         let queryString = ''
         for (var key in queryParams) {
             queryString = queryString.concat(key,'=',encodeURI(queryParams[key]),'&')
@@ -60,10 +62,10 @@ class VideoList extends Component {
         fetch(fetchUrl.concat('?',queryString))
             .then(response=>response.json())
             .catch((error)=>{
-
+                this.setState({refreshing:false})
             })
             .then(response=>{
-                this.setState({data:response['视频']})
+                this.setState({data:response['视频'],refreshing:false})
             })
     }
 
@@ -138,17 +140,14 @@ class VideoList extends Component {
     }
 
 
-
-
-
-
     render() {
         return(
-
             <View>
                 <FlatList data={this.state.data}
                           extraData={this.state}
                           renderItem={item=>this.renderItem(item)}
+                          onRefresh={()=>{this.loadData()}}
+                          refreshing={this.state.refreshing}
                 />
             </View>
 

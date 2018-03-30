@@ -4,7 +4,7 @@
 
 import React, { Component } from 'react';
 import Video from 'react-native-video'
-import {View, StyleSheet,Dimensions} from 'react-native'
+import {View, StyleSheet,Dimensions,TouchableOpacity,Text} from 'react-native'
 import VideoControls from './Commen/VideoControls'
 
 const WINDOW_WIDTH = Dimensions.get('window').width
@@ -21,11 +21,7 @@ export  default  class VideoDetail extends React.Component {
         return {
             title: item.title
         }};
-    state = {
-        isLoading:false,
-        videoDuration:0,
-        currentTime:0
-    }
+
     render() {
         let {item} = this.props.navigation.state.params
         return(
@@ -40,7 +36,6 @@ export  default  class VideoDetail extends React.Component {
             </View>
         )
     }
-
 }
 const styles = StyleSheet.create({
     backgroundVideo: {

@@ -4,7 +4,7 @@ import React,{Component} from 'react'
 import {StyleSheet,} from 'react-native'
 import VideoList from './VideoListPage'
 
-const channel = ['今日头条','腾讯新闻','一点资讯','天天快报','UC头条']
+const channel = ['今日头条','网易新闻','腾讯新闻','一点资讯','天天快报','UC头条']
 
 class HomePage extends Component {
 
