@@ -88,7 +88,11 @@ class VideoList extends Component {
                 this.setState({refreshing:false})
             })
             .then(response=>{
-                this.setState({data:response['视频'],refreshing:false})
+                this.setState({
+                  data:response['视频'],
+                  refreshing:false,
+                  playIndex:-1,
+                })
             })
     }
 

@@ -17,6 +17,8 @@ import PropTypes from 'prop-types';
 import VideoPlayer from 'react-native-video'
 import ProgressCircleSnail from 'react-native-progress/CircleSnail'
 import Orientation from 'react-native-orientation'
+import LinearGradient from 'react-native-linear-gradient'
+
 
 const Win = Dimensions.get('window')
 const WINDOW_WIDTH = Win.width
@@ -242,23 +244,23 @@ export  default  class Video extends Component {
                 <TouchableWithoutFeedback onPress={()=>{this.setState({paused:!paused})}} >
                     <Image source=  {paused ? require('../../image/FullPlay.png') : require('../../image/FullPause.png')} style={[styles.playBtn,playPosition]}/>
                 </TouchableWithoutFeedback>
-                <View style={[styles.bottomBar,{width:fullScreen ? Win.height : Win.width}]}>
-                    <Text ref={(ref)=>this.currentTimeText = ref} style={[styles.videoControlItem,{width:40}]}>{current}</Text>
-                    <Slider {...sliderProps}
-                            minimumValue={0}
-                            maximumValue={this.state.videoDuration}
-                            onSlidingComplete={(value)=>{
-                                this.isSliderDraged = false
-                                this.automateHiddenVideoControls()
-                                this.video.seek(parseInt(value))}
-                            }
-                            onValueChange={(value)=>this.onSliderValueChanged(value)}
-                            style={{flex:1}}></Slider>
-                    <Text style={styles.videoControlItem}>{duration}</Text>
-                    <TouchableOpacity onPress={()=>this.videoFullScreen()} style={styles.videoControlItem}>
-                        <Image source={require('../img/fullscreen.png')}/>
-                    </TouchableOpacity>
-                </View>
+                <LinearGradient colors={['transparent','black']} style={[styles.bottomBar,{width:fullScreen ? Win.height : Win.width}]}>
+                        <Text ref={(ref)=>this.currentTimeText = ref} style={[styles.videoControlItem,{width:40,color:'white'}]}>{current}</Text>
+                        <Slider {...sliderProps}
+                                minimumValue={0}
+                                maximumValue={this.state.videoDuration}
+                                onSlidingComplete={(value)=>{
+                                    this.isSliderDraged = false
+                                    this.automateHiddenVideoControls()
+                                    this.video.seek(parseInt(value))}
+                                }
+                                onValueChange={(value)=>this.onSliderValueChanged(value)}
+                                style={{flex:1}}></Slider>
+                        <Text style={[styles.videoControlItem,{color:'white'}]}>{duration}</Text>
+                        <TouchableOpacity onPress={()=>this.videoFullScreen()} style={styles.videoControlItem}>
+                            <Image source={require('../img/fullscreen.png')}/>
+                        </TouchableOpacity>
+                </LinearGradient>
             </View>
         )
     }
