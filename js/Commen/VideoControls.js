@@ -14,7 +14,7 @@ import {
     Slider
   } from 'react-native'
 import PropTypes from 'prop-types';
-import Video from 'react-native-video'
+import VideoPlayer from 'react-native-video'
 import ProgressCircleSnail from 'react-native-progress/CircleSnail'
 import Orientation from 'react-native-orientation'
 
@@ -23,7 +23,7 @@ const WINDOW_WIDTH = Win.width
 const VIDEO_ASPECT_RATIO = 16 / 9;
 const VIDEO_HEIGHT = WINDOW_WIDTH / VIDEO_ASPECT_RATIO
 
-export  default  class VideoControls extends Component {
+export  default  class Video extends Component {
     constructor(props) {
         super(props)
         this._renderLoadingIfNeeded = this._renderLoadingIfNeeded.bind(this)
@@ -289,7 +289,7 @@ export  default  class VideoControls extends Component {
                 ]}
                 >
                 <TouchableWithoutFeedback onPress={()=>{this.onVideoPressed()}}>
-                <Video
+                <VideoPlayer
                             {...this.props}
                             ref={ref=>{this.video = ref}}
                             rate={1.0}
@@ -301,8 +301,7 @@ export  default  class VideoControls extends Component {
                             onLoadStart={this.onLoadStart}
                             style={fullScreen ? styles.fullScreen : inline}
 
-                        >
-                        </Video>
+                        />
                 </TouchableWithoutFeedback>
                 {this._renderLoadingIfNeeded()}
                 {this._renderVideoControls()}
@@ -353,14 +352,14 @@ const styles = StyleSheet.create({
   },
 })
 
-VideoControls.propTypes = {
+Video.propTypes = {
     onFullScreen: PropTypes.func,
     title:PropTypes.string,
     renderTitle:PropTypes.func,
     showTitle:PropTypes.bool,
-    ...Video.propTypes
+    ...VideoPlayer.propTypes
 }
 
-VideoControls.defaultProps = {
+Video.defaultProps = {
     onFullScreen: () => {},
 }

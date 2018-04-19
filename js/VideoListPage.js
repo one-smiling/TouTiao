@@ -1,11 +1,29 @@
 import React , {Component}from 'react'
-import {View,FlatList,Image,ImageBackground,Text, Dimensions, StyleSheet, TouchableWithoutFeedback,TouchableOpacity,AlertIOS, Slider} from 'react-native'
+import {
+  View,
+  Image,
+  ImageBackground,
+  Text,
+  Dimensions,
+  StyleSheet, 
+  TouchableWithoutFeedback,
+  TouchableOpacity,
+  AlertIOS, 
+  Slider
+} from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
-import Video from 'react-native-video'
 import ProgressCircleSnail from 'react-native-progress/CircleSnail'
-import VideoControls from './Commen/VideoControls'
-
+import Video from './Commen/VideoControls'
+import {FlatList} from'./Commen/FlatList'
 import Button from 'react-native-button'
+import PropTypes from 'prop-types'
+
+
+const Container = ({ children, ...props }) => <View {...props}>{children}</View>
+
+Container.propTypes = {
+  children: PropTypes.node.isRequired
+}
 
 const WINDOW_WIDTH = Dimensions.get('window').width
 const VIDEO_ASPECT_RATIO = 16 / 9;
@@ -49,6 +67,11 @@ class VideoList extends Component {
         refreshing:true
     }
 
+
+
+
+    
+
     componentDidMount() {
         this.loadData()
     }
@@ -78,17 +101,18 @@ class VideoList extends Component {
         }
         let transform =  this.state.fullScreen ? {transform:  [{ rotate: '90deg'}]} :null
         return(
-           <View>
+           <Container>
                {isPlayIndex ?
-                   <VideoControls source={{uri: item.item.mp4_url}}
+                   <Video source={{uri: item.item.mp4_url}}
                                   renderTitle={()=>this._renderVideoTitle(item.item.title)}
                                   ref={ref => {
                                       this.video = ref
                                   }}
+                                  onFullScreen={this.props.onFullScreen}
                                   rate={1.0}
                                   paused={!needToPlay}
                                   style={[styles.backgroundVideo, transform]}>
-                   </VideoControls> :
+                   </Video> :
                    <TouchableWithoutFeedback onPress={() => {
                        this.onVideoPressed(item)
                    }} style={{alignItems: 'center'}}>
@@ -115,7 +139,7 @@ class VideoList extends Component {
                    </View>
                </View>
                {isPlayIndex ? null : <Image source={{uri:item.item.cover}} style={styles.avatar}/>}
-           </View>
+           </Container>
        )
     }
 
