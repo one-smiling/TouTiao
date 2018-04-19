@@ -2,14 +2,24 @@
  * Created by lushuai on 2018/3/29.
  */
 import React,{Component} from 'react'
-import {View,Image,Text, Dimensions, StyleSheet, TouchableWithoutFeedback,TouchableOpacity, Slider} from 'react-native'
+import {
+    View,
+    Image,
+    Text,
+    Animated, 
+    Dimensions,
+    StyleSheet,
+    TouchableWithoutFeedback,
+    TouchableOpacity,
+    Slider
+  } from 'react-native'
 import PropTypes from 'prop-types';
-import LinearGradient from 'react-native-linear-gradient'
 import Video from 'react-native-video'
 import ProgressCircleSnail from 'react-native-progress/CircleSnail'
+import Orientation from 'react-native-orientation'
 
-
-const WINDOW_WIDTH = Dimensions.get('window').width
+const Win = Dimensions.get('window')
+const WINDOW_WIDTH = Win.width
 const VIDEO_ASPECT_RATIO = 16 / 9;
 const VIDEO_HEIGHT = WINDOW_WIDTH / VIDEO_ASPECT_RATIO
 
@@ -23,9 +33,13 @@ export  default  class VideoControls extends Component {
         this.onProgress = this.onProgress.bind(this)
         this.onPlaybackStalled= this.onPlaybackStalled.bind(this)
         this.onVideoPressed = this.onVideoPressed.bind(this)
+        this.onRotated = this.onRotated.bind(this)
+
         this.isSliderDraged = false
         this.isFullScreen = false
         this.hiddenTimer = null
+        this.animInline = new Animated.Value(Win.width * 0.5625)
+        this.animFullscreen = new Animated.Value(Win.width * 0.5625)
 
     }
     state = {
@@ -34,6 +48,16 @@ export  default  class VideoControls extends Component {
         currentTime:0,
         videoControlsShow:false,
         paused:this.props.paused,
+        fullScreen:false,
+        inlineHeight: Win.width * 0.5625,
+
+    }
+    componentDidMount() {
+        Dimensions.addEventListener('change', this.onRotated)
+    }
+
+    componentWillUnmount() {
+        Dimensions.removeEventListener('change', this.onRotated)
     }
 
     onVideoPressed() {
@@ -114,9 +138,62 @@ export  default  class VideoControls extends Component {
         this.setState({currentTime:value})
     }
 
+    onRotated({ window: { width, height } }) {
+        // Add this condition incase if inline and fullscreen options are turned on
+        const orientation = width > height ? 'LANDSCAPE' : 'PORTRAIT'
+
+          if (orientation === 'LANDSCAPE') {
+            this.setState({ fullScreen: true }, () => {
+              this.animToFullscreen(height)
+              this.props.onFullScreen(this.state.fullScreen)
+            })
+            return
+          }
+          if (orientation === 'PORTRAIT') {
+            this.setState({
+              fullScreen: false,
+              paused:this.state.paused
+            }, () => {
+              this.animToInline()
+              this.props.onFullScreen(this.state.fullScreen)
+            })
+            return
+          }
+        if (this.state.fullScreen) this.animToFullscreen(height)
+    }
+
     videoFullScreen() {
-        this.isFullScreen = true
-        this.video.presentFullscreenPlayer()
+    this.setState({ fullScreen: !this.state.fullScreen }, () => {
+      Orientation.getOrientation((e, orientation) => {
+        if (this.state.fullScreen) {
+          const initialOrient = Orientation.getInitialOrientation()
+          const height = orientation !== initialOrient ?
+            Win.width : Win.height
+          this.animToFullscreen(height)
+          this.props.onFullScreen(this.state.fullScreen)
+          Orientation.lockToLandscape()
+        } else {
+          this.animToInline()
+          this.props.onFullScreen(this.state.fullScreen)
+          Orientation.lockToPortrait()
+        }
+      })
+    })
+    }
+
+    animToFullscreen(height) {
+    Animated.parallel([
+      Animated.timing(this.animFullscreen, { toValue: height, duration: 200 }),
+      Animated.timing(this.animInline, { toValue: height, duration: 200 })
+    ]).start()
+    }
+
+    animToInline(height) {
+    const newHeight = height || this.state.inlineHeight
+    Animated.parallel([
+      Animated.timing(this.animFullscreen, { toValue: newHeight, duration: 100 }),
+      Animated.timing(this.animInline, { toValue: this.state.inlineHeight, duration: 100 })
+    ]).start()
     }
 
     onFullscreenPlayerWillDismiss() {
@@ -138,109 +215,152 @@ export  default  class VideoControls extends Component {
         )
     }
 
-    _rederVideoPlayButton() {
-        // return null
-        if (!this.state.videoControlsShow) return null
-
-        if (!this.state.isLoading) {
-            if (this.state.paused) {
-                return (
-                    <TouchableWithoutFeedback onPress={()=>{this.setState({paused:false})}} >
-                        <Image source={require('../../image/FullPlay.png')} style={styles.playBtn}/>
-                    </TouchableWithoutFeedback>
-                )
-            } else  {
-                return (
-                    <TouchableWithoutFeedback onPress={()=>{this.setState({paused:true})}} style={styles.playBtn}>
-                        <Image source={require('../../image/FullPause.png')} style={styles.playBtn}/>
-                    </TouchableWithoutFeedback>
-                )
-
-            }
-        }
-    }
-
-
     _renderVideoControls() {
-        if (!this.state.videoControlsShow) return null
-        console.log('_renderVideoControls')
-        let sliderProps = this.isSliderDraged ?  null : {value:this.state.currentTime}
-        let currentTime = this.getTimeForSecond(parseInt(this.state.currentTime))
+        const {
+            videoControlsShow,   
+            fullScreen,
+            isLoading,
+            paused,
+            currentTime
+        } = this.state
+
+        const width = fullScreen ? Win.height : Win.width
+
+        const playPosition = {
+            top:(width / VIDEO_ASPECT_RATIO - 40)/2,
+            left:(width-40)/2
+        }
+        if (!videoControlsShow||isLoading ) return null
+
+        let sliderProps = this.isSliderDraged ? null : {value:currentTime}
+        let current = this.getTimeForSecond(parseInt(currentTime))
+
         let duration = this.getTimeForSecond(this.state.videoDuration)
+
         return (
-            <View style={styles.videoControls}>
-                <Text ref={(ref)=>this.currentTimeText = ref} style={[styles.videoControlItem,{width:40}]}>{currentTime}</Text>
-                <Slider {...sliderProps}
-                        minimumValue={0}
-                        maximumValue={this.state.videoDuration}
-                        onSlidingComplete={(value)=>{
-                            this.isSliderDraged = false
-                            this.automateHiddenVideoControls()
-                            this.video.seek(parseInt(value))}
-                        }
-                        onValueChange={(value)=>this.onSliderValueChanged(value)}
-                        style={{flex:1}}></Slider>
-                <Text style={styles.videoControlItem}>{duration}</Text>
-                <TouchableOpacity onPress={this.videoFullScreen.bind(this)} style={styles.videoControlItem}>
-                    <Image source={require('../img/fullscreen.png')}/>
-                </TouchableOpacity>
+            <View style= {{...StyleSheet.absoluteFillObject,zIndex: 99}}>
+                <TouchableWithoutFeedback onPress={()=>{this.setState({paused:!paused})}} >
+                    <Image source=  {paused ? require('../../image/FullPlay.png') : require('../../image/FullPause.png')} style={[styles.playBtn,playPosition]}/>
+                </TouchableWithoutFeedback>
+                <View style={[styles.bottomBar,{width:fullScreen ? Win.height : Win.width}]}>
+                    <Text ref={(ref)=>this.currentTimeText = ref} style={[styles.videoControlItem,{width:40}]}>{current}</Text>
+                    <Slider {...sliderProps}
+                            minimumValue={0}
+                            maximumValue={this.state.videoDuration}
+                            onSlidingComplete={(value)=>{
+                                this.isSliderDraged = false
+                                this.automateHiddenVideoControls()
+                                this.video.seek(parseInt(value))}
+                            }
+                            onValueChange={(value)=>this.onSliderValueChanged(value)}
+                            style={{flex:1}}></Slider>
+                    <Text style={styles.videoControlItem}>{duration}</Text>
+                    <TouchableOpacity onPress={()=>this.videoFullScreen()} style={styles.videoControlItem}>
+                        <Image source={require('../img/fullscreen.png')}/>
+                    </TouchableOpacity>
+                </View>
             </View>
         )
     }
     render () {
+        const {
+            fullScreen,
+            paused,
+            inlineHeight,
+        } = this.state
+
+        const {
+              style,
+          } = this.props
+
+        const inline = {
+          height: inlineHeight,
+          alignSelf: 'stretch'
+        }
+
         return (
-            <View>
-                <TouchableWithoutFeedback onPress={()=>{this.onVideoPressed()}} style={{alignItems: 'center'}}>
-                        <Video
+            <Animated.View
+                style={[
+                  styles.background,
+                  fullScreen ?
+                    (styles.fullScreen, { height: this.animFullscreen })
+                    : { height: this.animInline },
+                  fullScreen ? null : style
+                ]}
+                >
+                <TouchableWithoutFeedback onPress={()=>{this.onVideoPressed()}}>
+                <Video
                             {...this.props}
                             ref={ref=>{this.video = ref}}
                             rate={1.0}
-                            paused={this.state.paused}
+                            paused={paused}
                             onProgress={this.onProgress}
                             onLoad={this.onLoad}
                             onBuffer={this.onBuffer}
                             onPlaybackStalled={this.onPlaybackStalled}
                             onLoadStart={this.onLoadStart}
-                            onFullscreenPlayerWillDismiss={()=>{this.onFullscreenPlayerWillDismiss()}}
-                            style={[styles.backgroundVideo,this.props.style]}
+                            style={fullScreen ? styles.fullScreen : inline}
+
                         >
                         </Video>
                 </TouchableWithoutFeedback>
                 {this._renderLoadingIfNeeded()}
-                {this._rederVideoPlayButton()}
                 {this._renderVideoControls()}
-                {this.state.videoControlsShow ? this.props.renderTitle && this.props.renderTitle() : null}
-            </View>
+            </Animated.View>
+
         )
     }
 }
 
 const styles = StyleSheet.create({
-    videoControls:{
-        position:'absolute',
-        top: VIDEO_HEIGHT - 30,
-        width:WINDOW_WIDTH,
+    fullScreen: {
+        ...StyleSheet.absoluteFillObject
+    },
+
+    fullscreenVideoControls: {
+        top: Win.height - 60,
+        width:Win.height,
         left:0,
         flexDirection:'row',
         alignItems:'center',
         height:30,
-        backgroundColor:"transparent",
+        backgroundColor:"blue",
+    },
+    bottomBar:{
+        position:'absolute',
+        bottom:0,
+        flexDirection: 'row',
+        height: 30,
+        alignSelf: 'stretch',
+        justifyContent: 'flex-end',
+        alignItems:'center',
+
+        // backgroundColor:"transparent",
+
     },
     playBtn:{
-        top:(VIDEO_HEIGHT-40)/2,
-        left:(WINDOW_WIDTH-40)/2,
         width:40,
         height:40,
         position:'absolute'
     },
     videoControlItem:{
         marginHorizontal:10
-    }
+    },
+    background: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 98
+  },
 })
 
 VideoControls.propTypes = {
+    onFullScreen: PropTypes.func,
     title:PropTypes.string,
     renderTitle:PropTypes.func,
     showTitle:PropTypes.bool,
     ...Video.propTypes
+}
+
+VideoControls.defaultProps = {
+    onFullScreen: () => {},
 }

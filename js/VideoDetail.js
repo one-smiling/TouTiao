@@ -16,12 +16,22 @@ export  default  class VideoDetail extends React.Component {
     constructor(props){
         super(props)
     }
+
     static navigationOptions = ({ navigation }) => {
         const { item } = navigation.state.params;
         return {
-            title: item.title
-        }};
-
+          header:null,
+          title: item.title
+        }
+    }
+    onFullScreen(status) {
+        console.log("onFullScreen"+ status)
+        // Set the params to pass in fullscreen status to navigationOptions
+        this.props.navigation.setParams({
+          fullscreen: !status
+        })
+    }
+    
     render() {
         let {item} = this.props.navigation.state.params
         return(
@@ -31,6 +41,7 @@ export  default  class VideoDetail extends React.Component {
                     ref={ref=>{this.video = ref}}
                     rate={1.0}
                     paused={true}
+                    onFullScreen={status => this.onFullScreen(status)}
                     style={styles.backgroundVideo}
                    />
             </View>
