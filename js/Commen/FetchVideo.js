@@ -204,6 +204,10 @@ const headers = {
 
 
 //一点咨询
+//一点资讯需要使用HTTPS且接口需要验证证书，忽略验证需要修改iOS和Android工程文件 修改方式参考:
+// https://blog.csdn.net/qq_16086969/article/details/53522980
+//https://stackoverflow.com/questions/32892161/ignore-errors-for-self-signed-ssl-certs-using-the-fetch-api-in-a-reactnative-app/36368360#36368360
+
 function fetchYiDianVideo() {
 	const fetch_url = 'https://124.243.238.17/Website/channel/news-list-for-channel'
 const query_params = {'cend': '30',
