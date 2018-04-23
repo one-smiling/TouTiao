@@ -19,7 +19,6 @@ import {
 } from 'react-native';
 
 
-type Props = {};
 const TabNav = TabNavigator({
     Home:{screen:HomePage}
 })
@@ -33,11 +32,11 @@ const HomeStack = StackNavigator({
 
 
 
-export default class App extends Component<Props> {
+export default class App extends Component{
   render() {
     return (
-        <HomeStack />
-    );
+        <HomeStack/>
+    )
   }
 }
 

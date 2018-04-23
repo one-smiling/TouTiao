@@ -16,7 +16,7 @@ class HomePage extends Component {
       return {
         // For stack navigators, you can hide the header bar like so
         // For the tab navigators, you can hide the tab bar like so
-        header: 'none',
+        header: null,
         tabBarVisible,
       }
     }
