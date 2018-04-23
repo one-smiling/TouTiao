@@ -17,6 +17,7 @@ import Video from './Commen/VideoControls'
 import {FlatList} from'./Commen/FlatList'
 import Button from 'react-native-button'
 import PropTypes from 'prop-types'
+import {fetchNeteaseVideo,channelFetch} from './Commen/FetchVideo'
 
 
 const Container = ({ children, ...props }) => <View {...props}>{children}</View>
@@ -29,29 +30,12 @@ const WINDOW_WIDTH = Dimensions.get('window').width
 const VIDEO_ASPECT_RATIO = 16 / 9;
 const VIDEO_HEIGHT = WINDOW_WIDTH / VIDEO_ASPECT_RATIO
 
-const fetchUrl = 'https://c.m.163.com/recommend/getChanListNews'
-const queryParams = {'channel': 'T1457068979049',
-    'subtab': 'Video_Comic',
-    'passport': '',
-    'devId': 'Yot35DNkCmCjhl+DiPBAEtCw9+TJu7Lh/rwgZSt0OXOajwqSf9r37EcT2ocnU/pA',
-    'version': '33.1',
-    'spever': 'false',
-    'net': 'wifi',
-    'lat': 'hz22gEWHhRVC86Sj4K/Ckg==',
-    'lon': 'hgi37bA86qxyvamJLQDsSw==',
-    'ts': '1519652509',
-    'sign': 'M2Y3hkCYcLfWUYz5RGMhywQxOlUESmVBPlenRJoT3hZ48ErR02zJ6/KXOnxX046I',
-    'encryption': '1',
-    'canal': 'appstore',
-    'offset': '0',
-    'size': '10',
-    'fn': '1'}
-
 class VideoList extends Component {
     constructor(props) {
         super(props)
         this._renderVideoTitle = this._renderVideoTitle.bind(this)
         this.onVideoPressed = this.onVideoPressed.bind(this)
+        // this.getVideoURL = this.getVideoURL.bind(this)
         this.isSliderDraged = false
         this.hiddenTimer = null
     }
@@ -67,33 +51,117 @@ class VideoList extends Component {
         refreshing:true
     }
 
-
-
-
-    
-
     componentDidMount() {
         this.loadData()
     }
 
+    getVideoURL(videos) {
+
+        if (videos === undefined || videos.length == 0) {
+            return '.p703.1.mp4'
+        }
+        videos.sort((item1,item2)=>{
+            return item1.fs > item2.fs
+        })
+
+        let url = videos[0]
+
+        switch(url.name) {
+            case 'shd':return '.p701.1.mp4'
+            case 'hd':return '.p701.1.mp4'
+            default:return '.p703.1.mp4'
+        }
+    }
+
     loadData() {
         this.setState({refreshing:true})
-        let queryString = ''
-        for (var key in queryParams) {
-            queryString = queryString.concat(key,'=',encodeURI(queryParams[key]),'&')
-        }
-        fetch(fetchUrl.concat('?',queryString))
+        let _this = this;
+
+        const fetchFunc = channelFetch[this.props.tabLabel]
+        if (fetchFunc) {
+          fetchFunc()
             .then(response=>response.json())
             .catch((error)=>{
-                this.setState({refreshing:false})
-            })
+              this.setState({refreshing:false})
+                console.log(error)
+          })
             .then(response=>{
+                let data = []
+                switch(this.props.tabLabel) {
+                  case '网易新闻':{
+                      data = response['视频']
+                      response['视频'].forEach(function (value) {
+                          value.tname = value.videoTopic.tname
+                          data.push(value)
+                      })
+                  }
+                      break
+                  case '腾讯新闻':{
+                      let newsList = response['newslist']
+                      Object.values(newsList).map(function(value) {
+                          let item = {}
+                          let video = value['video_channel']['video']
+                          let videoUrl = 'http://120.198.235.230/ugcyd.qq.com/' + video['vid'] + _this.getVideoURL(video['formatlist'])
+                          item.mp4_url = videoUrl
+                          item.cover = video['img']
+                          item.tname = value['chlname']
+                          item.title = value['title']
+                          item.replyCount = value['comments']
+                          data.push(item)
+                      });
+                  }
+                      break
+                  case '一点资讯':{
+                      let newsList = response['result']
+                      newsList.forEach((newsData)=> {
+                          let item = {}
+                          let videoURLs = newsData['video_urls']
+                          if (videoURLs) {
+                              item.mp4_url = videoURLs.sort((item1,item2)=> item1.size>item2.size)[0].url
+                          } else {
+                              console.log(newsData)
+                              return
+                          }
+                          item.cover = ''
+                          // item.cover = newsData['image']
+                          item.tname = newsData['source']
+                          item.title = newsData['title']
+                          item.replyCount = newsData['comment_count']
+                          data.push(item)
+                      })
+                  }
+                      break
+                  case '天天快报':{
+                      let videos = response['kankaninfo']['videos']
+                      let newslist = response['newslist']
+                          videos.forEach((video,index)=> {
+                          let item = {}
+                          let videoUrl = 'http://120.198.235.230/ugcyd.qq.com/' + video['id'] + _this.getVideoURL(video['formatlist'])
+                          item.mp4_url = videoUrl
+                          item.cover = video['imageurl']
+                          item.tname = newslist[index]['chlname']
+                          item.title = video['title']
+                          item.replyCount = video['cmtnum']
+                          data.push(item)
+                      })
+
+
+                  }
+                      break
+                    default:
+                        console.log('数据为空')
+                }
                 this.setState({
-                  data:response['视频'],
-                  refreshing:false,
-                  playIndex:-1,
+                    data:data,
+                    refreshing:false,
+                    playIndex:-1,
                 })
+
+
+
+     
             })
+        }
     }
 
     renderItem(item) {
@@ -126,7 +194,7 @@ class VideoList extends Component {
                }
                {isPlayIndex ? null : this._renderVideoTitle(item.item.title)}
                <View style={styles.row}>
-                   <Text style={styles.tname}>{item.item.videoTopic.tname}</Text>
+                   <Text style={styles.tname}>{item.item.tname}</Text>
                    <View style={[styles.row,{flex:1, justifyContent:'flex-end'}]}>
                        <TouchableOpacity style={[styles.button,{flexDirection:'row',alignItems:'center'}]}>
                            <Image source={require('../image/video_add.png')}/>

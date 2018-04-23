@@ -3,9 +3,8 @@ import ScrollableTabView, {ScrollableTabBar} from 'react-native-scrollable-tab-v
 import React,{Component} from 'react'
 import {StyleSheet,Dimensions} from 'react-native'
 import VideoList from './VideoListPage'
+import { channel } from './Commen/FetchVideo'
 const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
-
-const channel = ['今日头条','网易新闻','腾讯新闻','一点资讯','天天快报','UC头条']
 
 class HomePage extends Component {
 
