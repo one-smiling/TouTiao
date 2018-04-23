@@ -49,7 +49,7 @@ class HomePage extends Component {
                     {...renderTabBarProps}
                     tabBarUnderlineStyle={{ height: 2, minWidth:80, backgroundColor: 'rgba(216,30,6,.8)'}}
                     tabBarInactiveTextColor="#515151"
-                    tabBarActiveTextColor="#d81e06"
+                    tabBarActiveTextColor="#d81e04"
                     tabBarTextStyle={{fontSize: 15}}
                     onChangeTab={(ref)=>{}}
                     onScroll={(postion)=>{}}

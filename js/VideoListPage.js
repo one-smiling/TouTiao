@@ -185,13 +185,14 @@ class VideoList extends Component {
                                   paused={!needToPlay}
                                   style={[styles.backgroundVideo, transform]}>
                    </Video> :
-                   <TouchableWithoutFeedback onPress={() => {
-                       this.onVideoPressed(item)
-                   }} style={{alignItems: 'center'}}>
-                       <Image source={{uri: item.item.cover}} style={styles.backgroundVideo}/>
+                   <TouchableWithoutFeedback onPress={() => {this.onVideoPressed(item)}} style={{alignItems: 'center'}}>
+                       <View>
+                           <Image source={{uri: item.item.cover}} style={styles.backgroundVideo}/>
+                           <Image source={require('../image/FullPlay.png')} style={styles.playBtn}/>
+                       </View>
                    </TouchableWithoutFeedback>
-
                }
+
                {isPlayIndex ? null : this._renderVideoTitle(item.item.title)}
                <View style={styles.row}>
                    <Text style={styles.tname}>{item.item.tname}</Text>
@@ -204,7 +205,6 @@ class VideoList extends Component {
                            <Image source={require('../image/tab_comment.png')}/>
                            <Text style={styles.buttonTitle}>{item.item.replyCount}</Text>
                        </TouchableOpacity>
-
                        <TouchableOpacity style={styles.button}>
                            <Image source={require('../image/More.png')}/>
                        </TouchableOpacity>

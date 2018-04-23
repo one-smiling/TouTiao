@@ -249,16 +249,18 @@ export  default  class Video extends Component {
                         <Slider {...sliderProps}
                                 minimumValue={0}
                                 maximumValue={this.state.videoDuration}
+                                minimumTrackTintColor={'#d81e04'}//滑块左侧轨道的颜色
+                                thumbImage={require('../img/icon_control_slider.png')}
                                 onSlidingComplete={(value)=>{
                                     this.isSliderDraged = false
                                     this.automateHiddenVideoControls()
                                     this.video.seek(parseInt(value))}
                                 }
                                 onValueChange={(value)=>this.onSliderValueChanged(value)}
-                                style={{flex:1}}></Slider>
+                                style={{flex:1}}/>
                         <Text style={[styles.videoControlItem,{color:'white'}]}>{duration}</Text>
                         <TouchableOpacity onPress={()=>this.videoFullScreen()} style={styles.videoControlItem}>
-                            <Image source={require('../img/fullscreen.png')}/>
+                            <Image source={fullScreen ?require('../img/exit_fullscreen.png') : require('../img/fullscreen.png')}/>
                         </TouchableOpacity>
                 </LinearGradient>
             </View>
