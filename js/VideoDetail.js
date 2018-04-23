@@ -34,10 +34,11 @@ export  default  class VideoDetail extends React.Component {
     
     render() {
         let {item} = this.props.navigation.state.params
+        let url = item.mp4_url
         return(
             <View style={{flex:1}}>
                 <VideoControls
-                    source={{uri:item.mp4_url}}
+                    source={{uri:url}}
                     ref={ref=>{this.video = ref}}
                     rate={1.0}
                     paused={true}

@@ -86,6 +86,13 @@
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
 			remoteInfo = TouTiao;
 		};
+		011911C4208DCEDD00031DA2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AB032D41081A498A8985FEA6 /* RCTOrientation.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = RCTOrientation;
+		};
 		011EE25C206206910013B523 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 4D9A53E8364B4A6A8F28ACB1 /* BVLinearGradient.xcodeproj */;
@@ -522,6 +529,14 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		011911C1208DCEDD00031DA2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				011911C5208DCEDD00031DA2 /* libRCTOrientation.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		011EE1FA206202930013B523 /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
@@ -870,7 +885,8 @@
 					ProjectRef = 00C302D31ABCB9D200DB3ED1 /* RCTNetwork.xcodeproj */;
 				},
 				{
-					ProductGroup = A281D7F6208B2E1A00801950 /* Products */;
+
+					ProductGroup = 011911C1208DCEDD00031DA2 /* Products */;
 					ProjectRef = AB032D41081A498A8985FEA6 /* RCTOrientation.xcodeproj */;
 				},
 				{
@@ -942,6 +958,13 @@
 			fileType = archive.ar;
 			path = libRCTVibration.a;
 			remoteRef = 00C302E31ABCB9EE00DB3ED1 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		011911C5208DCEDD00031DA2 /* libRCTOrientation.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRCTOrientation.a;
+			remoteRef = 011911C4208DCEDD00031DA2 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		011EE25D206206910013B523 /* libBVLinearGradient.a */ = {
