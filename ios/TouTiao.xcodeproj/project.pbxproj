@@ -359,13 +359,6 @@
 			remoteGlobalIDString = 9936F32F1F5F2E5B0010BF04;
 			remoteInfo = "privatedata-tvOS";
 		};
-		A281D7F9208B2E1A00801950 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = AB032D41081A498A8985FEA6 /* RCTOrientation.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 134814201AA4EA6300B7C361;
-			remoteInfo = RCTOrientation;
-		};
 		ADBDB9261DFEBF0700ED6528 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = ADBDB91F1DFEBF0600ED6528 /* RCTBlob.xcodeproj */;
@@ -716,14 +709,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		A281D7F6208B2E1A00801950 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				A281D7FA208B2E1A00801950 /* libRCTOrientation.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		ADBDB9201DFEBF0600ED6528 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -823,7 +808,7 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = Y7MYBLK48K;
+						DevelopmentTeam = N54D33958C;
 					};
 					2D02E47A1E0B4A5D006451C7 = {
 						CreatedOnToolsVersion = 8.2.1;
@@ -885,7 +870,6 @@
 					ProjectRef = 00C302D31ABCB9D200DB3ED1 /* RCTNetwork.xcodeproj */;
 				},
 				{
-
 					ProductGroup = 011911C1208DCEDD00031DA2 /* Products */;
 					ProjectRef = AB032D41081A498A8985FEA6 /* RCTOrientation.xcodeproj */;
 				},
@@ -1226,13 +1210,6 @@
 			remoteRef = A20AD45D206157B800D4703C /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		A281D7FA208B2E1A00801950 /* libRCTOrientation.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libRCTOrientation.a;
-			remoteRef = A281D7F9208B2E1A00801950 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		ADBDB9271DFEBF0700ED6528 /* libRCTBlob.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -1443,7 +1420,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = NO;
-				DEVELOPMENT_TEAM = Y7MYBLK48K;
+				DEVELOPMENT_TEAM = N54D33958C;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-native-video-player/ios/RNVideoPlayer",
@@ -1458,6 +1435,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.simay.TouTiao;
 				PRODUCT_NAME = TouTiao;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -1468,7 +1446,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = Y7MYBLK48K;
+				DEVELOPMENT_TEAM = N54D33958C;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-native-video-player/ios/RNVideoPlayer",
@@ -1483,6 +1461,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.simay.TouTiao;
 				PRODUCT_NAME = TouTiao;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
