@@ -15,9 +15,10 @@ import LinearGradient from 'react-native-linear-gradient'
 import ProgressCircleSnail from 'react-native-progress/CircleSnail'
 import Video from './Commen/VideoControls'
 import {FlatList} from'./Commen/FlatList'
-import Button from 'react-native-button'
+import {connect} from  'react-redux'
 import PropTypes from 'prop-types'
 import {fetchNeteaseVideo,channelFetch} from './Commen/FetchVideo'
+import {VIDEO_URL,PAUSE_ACTION,PLAY_ACTION} from './Actions/reducers'
 
 
 const Container = ({ children, ...props }) => <View {...props}>{children}</View>
@@ -53,6 +54,11 @@ class VideoList extends Component {
 
     componentDidMount() {
         this.loadData()
+    }
+
+
+    onHandleChangeTab = ({i})=> {
+        this.props.resetVideo()
     }
 
     getVideoURL(videos) {
@@ -165,7 +171,7 @@ class VideoList extends Component {
     }
 
     renderItem(item) {
-        let isPlayIndex = this.state.playIndex === item.index
+        let isPlayIndex = this.state.playIndex === item.index && this.props.playingURL === item.item.mp4_url
         let needToPlay = isPlayIndex
         if (needToPlay) {
             // console.log('开始播放：'+item.index)
@@ -220,11 +226,14 @@ class VideoList extends Component {
     }
 
     onVideoPressed(item) {
+        this.props.navigation.dispatch({type:PLAY_ACTION})
+        this.props.navigation.dispatch({type:VIDEO_URL,url:item.item.mp4_url})
         if (this.state.playIndex !== item.index) {
             this.setState({playIndex:item.index})
         }
     }
     goToVideoDetail(item) {
+        this.props.resetVideo()
         this.props.navigation.navigate('VideoDetail',{item:item})
     }
     _renderVideoTitle(title) {
@@ -244,6 +253,7 @@ class VideoList extends Component {
                           renderItem={item=>this.renderItem(item)}
                           onRefresh={()=>{this.loadData()}}
                           refreshing={this.state.refreshing}
+                          keyExtractor={(item,index) => String(index)}
                 />
             </View>
 
@@ -315,4 +325,22 @@ const styles = StyleSheet.create({
         marginHorizontal:10
     }
 })
-export default VideoList
+
+VideoList.propTypes = {
+    index:PropTypes.number.isRequired,
+}
+
+const mapStateToProps = (state) => {
+    return {
+        playingURL:state.videoInfo.playingURL,
+        paused:state.videoInfo.paused
+    }
+}
+
+const mapDispatchToProps = (dispatch,getState,ownProps)=> {
+    return {
+        resetVideo:(url)=>dispatch({type:VIDEO_URL,url:url})
+    }
+}
+
+export default connect(mapStateToProps,mapDispatchToProps,null,{withRef: true})(VideoList)

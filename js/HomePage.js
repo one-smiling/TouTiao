@@ -22,10 +22,12 @@ class HomePage extends Component {
 
     constructor(props) {
         super(props)
+        this.children = []
         this.state = {
             fullscreen:false
         }
     }
+
 
     onFullScreen(status) {
         this.setState({
@@ -36,6 +38,10 @@ class HomePage extends Component {
         this.props.navigation.setParams({
           fullscreen: !status
         })
+    }
+    handleChangeTab({i, ref, from, }) {
+        this.children[i].getWrappedInstance().onHandleChangeTab({i, ref, from, });
+        this.children[from].getWrappedInstance().onHandleChangeTab({i, ref, from, });
     }
 
     render() {
@@ -51,18 +57,20 @@ class HomePage extends Component {
                     tabBarInactiveTextColor="#515151"
                     tabBarActiveTextColor="#d81e04"
                     tabBarTextStyle={{fontSize: 15}}
-                    onChangeTab={(ref)=>{}}
+                    onChangeTab={this.handleChangeTab.bind(this)}
                     onScroll={(postion)=>{}}
                     locked={fullscreen}
                     initialPage={0}
                 >
                 {
                     channel.map((result,i,arr)=>{
-                       return <VideoList 
-                       key={i} 
-                       {...this.props} 
-                        onFullScreen={status => this.onFullScreen(status)}
-                       tabLabel={result}/>
+                       return <VideoList
+                           {...this.props}
+                           key={i}
+                           index={i}
+                           ref={(ref) => (this.children[i] = ref)}
+                           onFullScreen={status => this.onFullScreen(status)}
+                           tabLabel={result}/>
                     })
                 }
             </ScrollableTabView>

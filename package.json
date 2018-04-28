@@ -16,6 +16,7 @@
     "react-native-scrollable-tab-view": "^0.8.0",
     "react-native-video": "^2.0.0",
     "react-navigation": "^1.5.8",
+    "react-navigation-redux-helpers": "^1.0.5",
     "react-redux": "^5.0.7",
     "redux": "^3.7.2"
   },

@@ -4,23 +4,18 @@
  * @flow
  */
 
-import React, { Component } from 'react';
-import {createStore,combineReducers} from 'redux'
-import {Provider,connect} from 'react-redux'
-import {TabNavigator,StackNavigator,addNavigationHelpers,NavigationActions} from 'react-navigation'
+import React from 'react';
+import { Provider, connect } from 'react-redux'
+
+import {TabNavigator,StackNavigator,addNavigationHelpers} from 'react-navigation'
 import HomePage from './js/HomePage'
 import VideoDetail from './js/VideoDetail'
-
-
+import { addListener } from './js/utils/redux';
 
 import {
-  Platform,
-  StyleSheet,
-  Text,
+    Text,
     Image,
-  View
 } from 'react-native';
-
 
 const TabNav = TabNavigator({
     Home:{
@@ -35,22 +30,32 @@ const TabNav = TabNavigator({
         },
     }
 })
-const HomeStack = StackNavigator({
-    Root: {
+export const HomeStack = StackNavigator({
+    root: {
         screen: TabNav,
     },
     VideoDetail:{screen:VideoDetail}
 })
 
+class AppWithNavigate extends React.Component {
+    constructor(props) {
+        super(props)
+    }
 
-
-
-export default class App extends Component{
-  render() {
-    return (
-        <HomeStack/>
-    )
-  }
+    render() {
+        const {nav, dispatch} = this.props
+        return  (<HomeStack navigation={addNavigationHelpers({dispatch,state:nav,addListener})}/>)
+    }
 }
+
+const mapStateToProps = (state) => ({
+    nav:state.nav
+})
+export default  connect(mapStateToProps)(AppWithNavigate)
+
+
+
+
+
 
 

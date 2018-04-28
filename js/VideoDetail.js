@@ -41,7 +41,7 @@ export  default  class VideoDetail extends React.Component {
                     source={{uri:url}}
                     ref={ref=>{this.video = ref}}
                     rate={1.0}
-                    paused={true}
+                    paused={false}
                     onFullScreen={status => this.onFullScreen(status)}
                     style={styles.backgroundVideo}
                    />
